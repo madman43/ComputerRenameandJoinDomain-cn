@@ -1,21 +1,22 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-using System.Runtime.InteropServices;
-using System.Management;
-using System.Xml;
-using System.Xml.Schema;
-using System.Data.SqlTypes;
 using System.Data.SqlClient;
-using System.Threading;
+using System.Data.SqlTypes;
 using System.DirectoryServices;
 using System.DirectoryServices.ActiveDirectory;
-
+using System.Drawing;
+using System.Linq;
+using System.Management;
+using System.Net.Mime;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading;
+using System.Windows.Forms;
+using System.Xml;
+using System.Xml.Schema;
 namespace ComputerandDomain
 {
     public partial class Form1 : Form
@@ -24,6 +25,7 @@ namespace ComputerandDomain
         string currentDomain = "";
         string hostNameWithoutdomain = "";
         public Form1()
+
         {
             InitializeComponent();
             currentPCName = GetComputerName();
@@ -36,11 +38,36 @@ namespace ComputerandDomain
             }
             else
             {
-                textBoxDomainName.Text = "Not in domain.";
+                textBoxDomainName.Text = "无域名";
+            }
+            LocalizeTreeView();
+        }
+        private void LocalizeTreeView()
+        {
+            // 这里可以添加本地化 TreeView 的代码，如果暂时不需要实现，可以留空
+            // 获取当前 UI 语言
+            var culture = Thread.CurrentThread.CurrentUICulture;
+
+            if (culture.Name.StartsWith("zh"))
+            {
+                // 中文环境
+                SetTreeNodeText("unjoinDomainAndRename", "退出域并重命名");
+                SetTreeNodeText("unjoinDomain", "退出域");
+                SetTreeNodeText("rename", "重命名");
+                SetTreeNodeText("joinDomain", "加入域");
+                SetTreeNodeText("renameAndJoinDomain", "重命名并加入域");
+            }
+            // 如果需要支持其他语言，可以加 else if
+
+        }
+        private void SetTreeNodeText(string nodeName, string text)
+        {
+            var node = treeViewRenameAndJoinDomain.Nodes.Find(nodeName, false);
+            if (node.Length > 0)
+            {
+                node[0].Text = text;
             }
         }
-
-        
 
         public string GetComputerName()
         {
@@ -95,11 +122,11 @@ namespace ComputerandDomain
                     if ((bool)objMO["partofdomain"])
                     {
                         domainName = objMO["domain"].ToString();
-                        textBoxOutput.AppendText("Current computer is in domain: " + domainName + Environment.NewLine);
+                        textBoxOutput.AppendText("当前计算机处于域模式：" + domainName + Environment.NewLine);
                     }
                     else
                     {
-                        textBoxOutput.AppendText("Current computer is in work group, not in domain!" + Environment.NewLine);
+                        textBoxOutput.AppendText("当前的计算机处于工作组模式，而非域模式！" + Environment.NewLine);
                     }
                 }
             }
@@ -109,7 +136,7 @@ namespace ComputerandDomain
 
         private void unjoinDomainAndRename()
         {
-            if (MessageBox.Show("Are you sure to leave the domain and rename your computer?", "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            if (MessageBox.Show("您确定要离开当前网络环境并重新给您的电脑命名吗？", "警告", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
 
                 string currentHostname = currentPCName;
@@ -131,22 +158,22 @@ namespace ComputerandDomain
                         result = objMO.InvokeMethod("UnjoinDomainOrWorkgroup", query, null);
                         if ((uint)result["ReturnValue"] == 0)
                         {
-                            textBoxOutput.AppendText("Leave the domain successfully! You will need to know the password of the local administrator account to log in to your computer. You must restart your computer to apply these changes!" + Environment.NewLine);
+                            textBoxOutput.AppendText("已成功脱离该域！要登录您的计算机，您需要知道本地管理员账户的密码。您必须重启计算机以使这些更改生效！" + Environment.NewLine);
                         }
                         else
                         {
-                            textBoxOutput.AppendText("Leave the domain failed! Please run this tool as administrator!" + Environment.NewLine);
+                            textBoxOutput.AppendText("脱离该域失败！请以管理员身份运行此工具！" + Environment.NewLine);
                         }
                     }
                     catch (ManagementException e)
                     {
-                        textBoxOutput.AppendText("Leave the domain failed, the error code is: " + (uint)e.ErrorCode + " , can not leave the domain: " + e.Message + Environment.NewLine);
+                        textBoxOutput.AppendText("脱离域操作失败，错误代码为：" + (uint)e.ErrorCode + " , 不能离开该域: " + e.Message + Environment.NewLine);
                         return;
                     }
                 }
                 else
                 {
-                    textBoxOutput.AppendText("Leave the domain failed, current computer is not in the domain!" + Environment.NewLine);
+                    textBoxOutput.AppendText("脱离域操作失败，当前计算机不在域内！" + Environment.NewLine);
                 }
 
                 if (textBoxNewName.Text.Trim() != "" && textBoxNewName.Text.Trim().ToLower() != hostNameWithoutdomain.ToLower())
@@ -164,29 +191,29 @@ namespace ComputerandDomain
                         result = objMO.InvokeMethod("Rename", rename, null);
                         if ((uint)result["ReturnValue"] == 0)
                         {
-                            textBoxOutput.AppendText("Rename current computer successfully! You must restart your computer to apply these changes!" + Environment.NewLine);
+                            textBoxOutput.AppendText("成功重命名当前计算机！您必须重启计算机以应用这些更改！" + Environment.NewLine);
                         }
                         else
                         {
-                            textBoxOutput.AppendText("Rename current computer failed, Please run this tool as administrator!" + Environment.NewLine);
+                            textBoxOutput.AppendText("当前计算机重命名操作失败，请以管理员身份运行此工具！" + Environment.NewLine);
                         }
                     }
                     catch (ManagementException ex)
                     {
-                        textBoxOutput.AppendText("Rename current computer failed, the error code is: " + (uint)ex.ErrorCode + ", can not rename: " + ex.Message + Environment.NewLine);
+                        textBoxOutput.AppendText("当前电脑重命名操作失败，错误代码为：" + (uint)ex.ErrorCode + ", 不能重命名：" + ex.Message + Environment.NewLine);
                         return;
                     }
                 }
                 else
                 {
-                    textBoxOutput.AppendText("Rename current computer failed, please input a new computer name!" + Environment.NewLine);
+                    textBoxOutput.AppendText("当前计算机重命名失败，请输入一个新的计算机名称！" + Environment.NewLine);
                 }
             }
         }
 
         public void unJoinDomain()
         {
-            if (MessageBox.Show("Are you sure to leave the domain?", "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            if (MessageBox.Show("你确定要离开这个领域吗？", "警告", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
                 if (currentDomain != "")
                 {
@@ -208,23 +235,23 @@ namespace ComputerandDomain
                         result = objMO.InvokeMethod("UnjoinDomainOrWorkgroup", query, null);
                         if ((uint)result["ReturnValue"] == 0)
                         {
-                            textBoxOutput.AppendText("Leave the domain successfully! You will need to know the password of the local administrator account to log in to your computer. You must restart your computer to apply these changes!" + Environment.NewLine);
+                            textBoxOutput.AppendText("已成功脱离该域！要登录您的计算机，您需要知道本地管理员账户的密码。您必须重启计算机以使这些更改生效！" + Environment.NewLine);
                         }
                         else
                         {
-                            textBoxOutput.AppendText("Leave the domain failed! Please run this tool as administrator!" + Environment.NewLine);
+                            textBoxOutput.AppendText("脱离该域失败！请以管理员身份运行此工具！" + Environment.NewLine);
                         }
                     }
                     catch (ManagementException e)
                     {
-                        textBoxOutput.AppendText("Leave the domain failed, the error code is: " + (uint)e.ErrorCode + " , can not leave the domain: " + e.Message + Environment.NewLine);
+                        textBoxOutput.AppendText("脱离该区域失败，错误代码为： " + (uint)e.ErrorCode + " , 不能离开该域 " + e.Message + Environment.NewLine);
                         return;
                     }
                 }
                 else
                 {
-                    textBoxOutput.AppendText("Leave the domain failed, current computer is not in the domain!" + Environment.NewLine);
-                    MessageBox.Show("Leave the domain failed, current computer is not in the domain!", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    textBoxOutput.AppendText("脱离域操作失败，当前计算机不在域内！" + Environment.NewLine);
+                    MessageBox.Show("脱离域操作失败，当前计算机不在域内！", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
             }
         }
@@ -249,16 +276,16 @@ namespace ComputerandDomain
                 result = objMO.InvokeMethod("Rename", rename, null);
                 if ((uint)result["ReturnValue"] == 0)
                 {
-                    textBoxOutput.AppendText("Rename current computer successfully! You must restart your computer to apply these changes!" + Environment.NewLine);
+                    textBoxOutput.AppendText("当前计算机的名称已成功更改！您必须重启计算机以使这些更改生效！" + Environment.NewLine);
                 }
                 else
                 {
-                    textBoxOutput.AppendText("Rename current computer failed, Please run this tool as administrator!" + Environment.NewLine);
+                    textBoxOutput.AppendText("当前计算机重命名操作失败，请以管理员身份运行此工具！" + Environment.NewLine);
                 }
             }
             catch (ManagementException e)
             {
-                textBoxOutput.AppendText("Rename current computer failed, the error code is: " + (uint)e.ErrorCode + ", can not rename:  " + e.Message + Environment.NewLine);
+                textBoxOutput.AppendText("当前电脑重命名操作失败，错误代码为：" + (uint)e.ErrorCode + ", 不能重命名：" + e.Message + Environment.NewLine);
                 return;
             }
         }
@@ -267,7 +294,7 @@ namespace ComputerandDomain
         {
             if (currentDomain == "")
             {
-                if (MessageBox.Show("Are you sure to join the new domain?", "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                if (MessageBox.Show("你确定要加入这个新域名吗？", "警告", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
                     string newDomain = textBoxNewDomain.Text.Trim();
                     string username = textBoxUsername.Text.Trim();
@@ -278,14 +305,14 @@ namespace ComputerandDomain
                     }
                     else
                     {
-                        MessageBox.Show("Please input the new domain name, domain user name and password!", "Erron", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show("请输入新的域名、域名用户名以及密码。!", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
             }
             else
             {
-                textBoxOutput.AppendText("Current computer is in the domain, please leave the domain first then join the new domain!" + Environment.NewLine);
-                MessageBox.Show("Current computer is in the domain, please leave the domain first then join the new domain!", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                textBoxOutput.AppendText("当前计算机处于域环境中，请先退出该域，然后再加入新的域！" + Environment.NewLine);
+                MessageBox.Show("当前计算机处于当前域中，请先退出当前域，然后再加入新的域！", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -311,11 +338,11 @@ namespace ComputerandDomain
                 result = objMO.InvokeMethod("JoinDomainOrWorkgroup", query, null);
                 if ((uint)result["ReturnValue"] == 0)
                 {
-                    textBoxOutput.AppendText("Current computer joins the new domain successfully! You must restart your computer to apply these changes!" + Environment.NewLine);
+                    textBoxOutput.AppendText("当前计算机已成功加入新域！您必须重启计算机以使这些更改生效！" + Environment.NewLine);
                 }
                 else
                 {
-                    textBoxOutput.AppendText("Current computer joins the new domain failed! Please run this tool as administrator and make sure there is no same name in the domain!" + Environment.NewLine);
+                    textBoxOutput.AppendText("当前计算机加入新域失败！请以管理员身份运行此工具，并确保域中不存在相同名称的计算机！" + Environment.NewLine);
                 }
 
                 if (checkBoxAddtoLocalAdmins.Checked == true)
@@ -325,7 +352,7 @@ namespace ComputerandDomain
             }
             catch (ManagementException e)
             {
-                textBoxOutput.AppendText("Join new domain failed, the error code is: " + (uint)e.ErrorCode + " can not join domain: " + e.Message + Environment.NewLine);
+                textBoxOutput.AppendText("加入新域名失败，错误代码为：" + (uint)e.ErrorCode + " 无法加入域：" + e.Message + Environment.NewLine);
                 return;
             }
         }
@@ -344,13 +371,13 @@ namespace ComputerandDomain
                 {
                     if (currentDomain.ToUpper() == newDomainName.ToUpper())
                     {
-                        textBoxOutput.AppendText("Current computer is already in the new domain: " + currentDomain + Environment.NewLine);
+                        textBoxOutput.AppendText("当前的计算机已经处于一个新的领域之中：" + currentDomain + Environment.NewLine);
                         return;
 
                     }
                     else
                     {
-                        textBoxOutput.AppendText("Current computer is already in other domain: " + currentDomain + Environment.NewLine);
+                        textBoxOutput.AppendText("当前的计算机已经在其他领域得到了应用：" + currentDomain + Environment.NewLine);
                         return;
                     }
                 }
@@ -363,7 +390,7 @@ namespace ComputerandDomain
                     }
                     catch (ManagementException)
                     {
-                        textBoxOutput.AppendText("Join new domain failed! Can not find the computer name!" + Environment.NewLine);
+                        textBoxOutput.AppendText("加入新域失败！无法找到计算机名称！" + Environment.NewLine);
                         return;
                     }
                     query["Name"] = newDomainName;
@@ -377,18 +404,18 @@ namespace ComputerandDomain
                     }
                     catch (ManagementException e)
                     {
-                        textBoxOutput.AppendText("Join new domain failed, the error code is: " + (uint)e.ErrorCode + ", can not join domain: " + e.Message + Environment.NewLine);
+                        textBoxOutput.AppendText("加入新域名失败，错误代码为：" + (uint)e.ErrorCode + ", 无法加入域：" + e.Message + Environment.NewLine);
                         return;
                     }
 
                     if (0 != (uint)result["ReturnValue"])
                     {
-                        textBoxOutput.AppendText("Join new domain failed: " + (uint)result["ReturnValue"] + ", can not join domain." + Environment.NewLine);
+                        textBoxOutput.AppendText("加入新域名失败： " + (uint)result["ReturnValue"] + ", 无法加入域。" + Environment.NewLine);
                         return;
                     }
                     else
                     {
-                        textBoxOutput.AppendText("Join new domain " + newDomainName + " successfully! You must restart your computer to apply these changes!" + Environment.NewLine);
+                        textBoxOutput.AppendText("加入新域" + newDomainName + " 成功了！您必须重启电脑以使这些更改生效！" + Environment.NewLine);
                     }
                 }
 
@@ -409,22 +436,22 @@ namespace ComputerandDomain
 
                         if (0 != (uint)result["ReturnValue"])
                         {
-                            textBoxOutput.AppendText("Rename computer failed, the error code is: " + result["ReturnValue"].ToString() + Environment.NewLine);
+                            textBoxOutput.AppendText("重命名计算机失败，错误代码为：" + result["ReturnValue"].ToString() + Environment.NewLine);
                         }
                         else
                         {
-                            textBoxOutput.AppendText("Rename computer successfully! You must restart your computer to apply these changes!" + Environment.NewLine);
+                            textBoxOutput.AppendText("计算机重命名成功！您必须重启计算机以使这些更改生效！" + Environment.NewLine);
                         }
 
                     }
                     catch (InvalidOperationException e)
                     {
-                        textBoxOutput.AppendText("Rename computer failed: " + e.Message + Environment.NewLine);
+                        textBoxOutput.AppendText("计算机重命名失败 " + e.Message + Environment.NewLine);
                         return;
                     }
                     catch (ManagementException e)
                     {
-                        textBoxOutput.AppendText("Rename computer failed, can not rename computer: " + e.Message + Environment.NewLine);
+                        textBoxOutput.AppendText("计算机重命名失败，无法重命名计算机：" + e.Message + Environment.NewLine);
                         return;
                     }
                 }
@@ -436,24 +463,24 @@ namespace ComputerandDomain
             }
             else
             {
-                textBoxOutput.AppendText("Join new domain failed: can not open the object!" + Environment.NewLine);
+                textBoxOutput.AppendText("加入新域名失败：无法打开该对象！" + Environment.NewLine);
                 return;
             }
         }
 
-        #region Add domain user to local administrators group.
+        #region Add domain user to local administrators group (.NET 4.8)
         public void AddDomainUsertoLocalGroup(string username)
         {
             try
             {
-                DirectoryEntry adRoot = new DirectoryEntry(string.Format("WinNT://{0}", textBoxNewDomain.Text.Trim()), textBoxUsername.Text.Trim(), textBoxPwd.Text.Trim());
+                DirectoryEntry adRoot = new DirectoryEntry($"WinNT://{textBoxNewDomain.Text.Trim()}", textBoxUsername.Text.Trim(), textBoxPwd.Text.Trim());
                 DirectoryEntry user = adRoot.Children.Find(username, "User");
 
-                DirectoryEntry localGroupRoot = new DirectoryEntry("WinNT://" + Environment.MachineName + ",Computer");
+                DirectoryEntry localGroupRoot = new DirectoryEntry($"WinNT://{Environment.MachineName},Computer");
                 DirectoryEntry localGroup = localGroupRoot.Children.Find("Administrators", "group");
 
-                localGroup.Invoke("Add", new Object[] { user.Path.ToString() });
-                textBoxOutput.AppendText("Add user " + username + " to local Administrators group successfully!" + Environment.NewLine);
+                localGroup.Invoke("Add", new object[] { user.Path.ToString() });
+                textBoxOutput.AppendText($"添加用户 {username} 已成功添加到“本地管理员”组！" + Environment.NewLine);
             }
             catch (Exception e)
             {
@@ -461,6 +488,7 @@ namespace ComputerandDomain
             }
         }
         #endregion
+
 
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -476,7 +504,7 @@ namespace ComputerandDomain
                 unJoinDomain();
             else if (treeViewRenameAndJoinDomain.SelectedNode.Name == "rename")
             {
-                if (MessageBox.Show("Are you sure to rename your computer?", "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                if (MessageBox.Show("你确定要给你的电脑改名吗？", "警告", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
                     string newPCName = textBoxNewName.Text.Trim();
                     if (newPCName != "" && newPCName.ToLower() != hostNameWithoutdomain.ToLower())
@@ -485,8 +513,8 @@ namespace ComputerandDomain
                     }
                     else
                     {
-                        textBoxOutput.AppendText("Rename computer failed! Please input a different new computer name!" + Environment.NewLine);
-                        MessageBox.Show("Rename computer failed! Please input a different new computer name!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        textBoxOutput.AppendText("重命名计算机失败！请输入一个不同的新计算机名称！" + Environment.NewLine);
+                        MessageBox.Show("重命名计算机失败！请输入一个不同的新计算机名称！", "错误", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     }
                 }
             }
@@ -496,7 +524,7 @@ namespace ComputerandDomain
             {
                 if (currentDomain == "")
                 {
-                    if (MessageBox.Show("Are you sure to rename your computer and join new domain?", "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                    if (MessageBox.Show("您确定要更改电脑名称并加入新的域吗？", "警告", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                     {
                         string newDomain = textBoxNewDomain.Text.Trim();
                         string newHostName = textBoxNewName.Text.Trim();
@@ -508,20 +536,20 @@ namespace ComputerandDomain
                         }
                         else
                         {
-                            textBoxOutput.AppendText("Rename and join new domain failed, please input a different new computer name, domain user name and password!" + Environment.NewLine);
-                            MessageBox.Show("Rename and join new domain failed, please input a different new computer name, domain user name and password!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            textBoxOutput.AppendText("重命名并加入新域的操作失败，请输入不同的新计算机名称、域用户名和密码！" + Environment.NewLine);
+                            MessageBox.Show("重命名并加入新域的操作失败，请输入不同的新计算机名称、域用户名和密码！", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         }
                     }
                 }
                 else
                 {
-                    textBoxOutput.AppendText("Rename and join new domain failed, your computer is already in domain, please leave the current domain then join new domain!" + Environment.NewLine);
-                    MessageBox.Show("Rename and join new domain failed, your computer is already in domain, please leave the current domain then join new domain!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    textBoxOutput.AppendText("重命名并加入新域的操作失败，您的计算机已处于域环境中，请先退出当前域，然后再加入新域！" + Environment.NewLine);
+                    MessageBox.Show("重命名并加入新域失败，您的计算机已处于域环境中，请先离开当前域然后再加入新域！", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
             else
             {
-                MessageBox.Show("Please select an option on the left tree!","Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("请在左侧的树状结构中选择一个选项！", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -567,6 +595,16 @@ namespace ComputerandDomain
                 textBoxPwd.ReadOnly = false;
                 checkBoxAddtoLocalAdmins.Enabled = true;
             }
+        }
+
+        private void label2_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void textBoxPwd_TextChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }

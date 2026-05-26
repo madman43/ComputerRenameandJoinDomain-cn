@@ -14,7 +14,7 @@ namespace ComputerandDomain
 {
     public partial class About : Form
     {
-        private const string updateUrl = "http://sourceforge.net/projects/renameandjoindomaintool/files/RenameAndJoinDomain/version-en.xml";//The url of check version xml file.
+        private const string updateUrl = "";//The url of check version xml file.
         public About()
         {
             InitializeComponent();
@@ -61,13 +61,13 @@ namespace ComputerandDomain
                 if (comResult >= 0)
                 {
                     //isUpdate = false;
-                    MessageBox.Show("This is the latest version!", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("这是最新版本！", "信息", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else
                 {
                     //isUpdate = true;
                     //MessageBox.Show("New " + currentDirPath + verNew.ToString());
-                    if (MessageBox.Show("The new version v" + newVersion + " is available, do you want to download it to current directory?", "Information", MessageBoxButtons.YesNo, MessageBoxIcon.Information) == DialogResult.Yes)
+                    if (MessageBox.Show("新版本 v" + newVersion + " 如果可以的话，您是否想要将其下载到当前目录？", "信息", MessageBoxButtons.YesNo, MessageBoxIcon.Information) == DialogResult.Yes)
                     {
                         wc.DownloadFile(newSoftAddr, currentDirPath + "\\RenameAndJoinDomainTool-v" + newVersion + ".zip");
                         wc.Dispose();
@@ -76,8 +76,23 @@ namespace ComputerandDomain
             }
             catch (Exception)
             {
-                MessageBox.Show("Check update error! Please make sure if you can connect to internet successfully or go to http://sourceforge.net/projects/renameandjoindomaintool to download!", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("检查更新错误！请确认您是否能够成功连接到互联网，或者前往 http://sourceforge.net/projects/renameandjoindomaintool 下载!", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
+        }
+
+        private void label6_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label12_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label11_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
