@@ -1,11 +1,2 @@
-# ComputerRenameandJoinDomain
-This is a computer rename and join domain tool, used to rename or join computer to domain, I share the source code here to help IT administrators who need it. It is fully free and open source.
-http://www.usefulshare.com/renameandjoindomaintool-cn
-
-I think your may also like my ADBulkAdmin tool which can bulk administer AD users.
-
-http://www.usefulshare.com/adbulkadmin
-
-https://sourceforge.net/projects/adbulkadmin/
-
-https://github.com/nilejiang/adbulkadmin
+# 计算机重命名及加入域
+这是一个用于重命名计算机或将其加入域的工具，旨在帮助 IT 管理员完成相关操作。我在此分享其源代码，以供有需要的用户使用。该工具完全免费且开源。
